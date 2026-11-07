@@ -1,4 +1,6 @@
 <title>Dr. Afreen Khan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}img{max-width:100%}html{-webkit-text-size-adjust:100%}</style>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -959,9 +961,7 @@ tilt3d();setActive();onScroll();
   var mC=new THREE.MeshBasicMaterial({wireframe:true,transparent:true,opacity:.4});
   var mC2=new THREE.MeshBasicMaterial({wireframe:true,transparent:true,opacity:.4});
   var pm=new THREE.PointsMaterial({size:.1,transparent:true,opacity:.8,sizeAttenuation:true,depthWrite:false});
-  function Helix(ph){THREE.Curve.call(this);this.ph=ph}
-  Helix.prototype=Object.create(THREE.Curve.prototype);Helix.prototype.constructor=Helix;
-  Helix.prototype.getPoint=function(t,o){o=o||new THREE.Vector3();var i=t*N,th=i*TW+this.ph;return o.set(RAD*Math.cos(th),RAD*Math.sin(th),-i*STEP)};
+  function Helix(ph){var c=new THREE.Curve();c.ph=ph;c.getPoint=function(t,o){o=o||new THREE.Vector3();var i=t*N,th=i*TW+this.ph;return o.set(RAD*Math.cos(th),RAD*Math.sin(th),-i*STEP)};return c}
   scene.add(new THREE.Mesh(new THREE.TubeGeometry(new Helix(0),1700,.11,8,false),mA));
   scene.add(new THREE.Mesh(new THREE.TubeGeometry(new Helix(Math.PI),1700,.11,8,false),mB));
   var sg=new THREE.SphereGeometry(.21,12,10),cg=new THREE.CylinderGeometry(.045,.045,RAD,6);
