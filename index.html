@@ -8,7 +8,7 @@
 <style>
 /* Layout: one light court in royal violet and antique gold. A WebGL helix sits behind; the portrait stands in a layered 3D arch; grid rows share one scroll tilt so cards stay aligned. */
 :root{
-  --bg:#f4f1fb; --bg2:#e9e3f8;
+  --bg:#ffffff; --bg2:#f6f4fb;
   --panel:rgba(255,255,255,.82); --panel-strong:rgba(255,255,255,.97);
   --line:rgba(70,40,150,.18); --hl:rgba(255,255,255,.9);
   --fg:#1a1040; --dim:#5b4e8c;
@@ -16,7 +16,7 @@
   --accent:var(--vio); --on-accent:#ffffff;
   --nav-bg:rgba(244,241,251,.88);
   --name1:#3d1fb3; --name2:#6f47e8; --depth:#d3ab4d;
-  --gl-a:#6a42e0; --gl-b:#c9961c; --gl-c:#b3216d; --gl-bg:#f4f1fb; --gl-glow:.1;
+  --gl-a:#6a42e0; --gl-b:#c9961c; --gl-c:#b3216d; --gl-bg:#ffffff; --gl-glow:.1;
   --glow1:rgba(122,84,255,.16); --glow2:rgba(255,150,195,.2);
   --shadow:0 26px 60px rgba(50,25,130,.24);
   --gel-bg:#080620; --gel-band:#f5d98a; --gel-well:#171038;
@@ -442,8 +442,6 @@ p{text-wrap:pretty;overflow-wrap:break-word}
 }
 </style>
 
-<div class="glow" aria-hidden="true"></div>
-<canvas id="gl" aria-hidden="true"></canvas>
 
 <header class="nav">
   <div class="nav-in">
@@ -947,82 +945,5 @@ $('copy').addEventListener('click',function(){
 
 tilt3d();setActive();onScroll();
 
-/* WebGL helix */
-(function(){
-  var cv=$('gl');if(!window.THREE)return;
-  var R;try{R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true})}catch(e){return}
-  R.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
-  var scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(58,1,.1,170);
-  scene.add(cam);
-  var N=420,STEP=.28,TW=.3,RAD=3,LEN=N*STEP;
-  function col(v){return getComputedStyle(root).getPropertyValue(v).trim()||'#888888'}
-  var mA=new THREE.MeshStandardMaterial({roughness:.35,metalness:.1});
-  var mB=new THREE.MeshStandardMaterial({roughness:.35,metalness:.1});
-  var mC=new THREE.MeshBasicMaterial({wireframe:true,transparent:true,opacity:.4});
-  var mC2=new THREE.MeshBasicMaterial({wireframe:true,transparent:true,opacity:.4});
-  var pm=new THREE.PointsMaterial({size:.1,transparent:true,opacity:.8,sizeAttenuation:true,depthWrite:false});
-  function Helix(ph){var c=new THREE.Curve();c.ph=ph;c.getPoint=function(t,o){o=o||new THREE.Vector3();var i=t*N,th=i*TW+this.ph;return o.set(RAD*Math.cos(th),RAD*Math.sin(th),-i*STEP)};return c}
-  scene.add(new THREE.Mesh(new THREE.TubeGeometry(new Helix(0),1700,.11,8,false),mA));
-  scene.add(new THREE.Mesh(new THREE.TubeGeometry(new Helix(Math.PI),1700,.11,8,false),mB));
-  var sg=new THREE.SphereGeometry(.21,12,10),cg=new THREE.CylinderGeometry(.045,.045,RAD,6);
-  var sA=new THREE.InstancedMesh(sg,mA,N),sB=new THREE.InstancedMesh(sg,mB,N),rA=new THREE.InstancedMesh(cg,mA,N),rB=new THREE.InstancedMesh(cg,mB,N);
-  var dm=new THREE.Object3D(),Y=new THREE.Vector3(0,1,0),pa=new THREE.Vector3(),pb=new THREE.Vector3(),cn=new THREE.Vector3(),dv=new THREE.Vector3();
-  for(var i=0;i<N;i++){
-    var th=i*TW,z=-i*STEP;
-    pa.set(RAD*Math.cos(th),RAD*Math.sin(th),z);pb.set(-pa.x,-pa.y,z);cn.set(0,0,z);
-    dm.position.copy(pa);dm.quaternion.identity();dm.updateMatrix();sA.setMatrixAt(i,dm.matrix);
-    dm.position.copy(pb);dm.updateMatrix();sB.setMatrixAt(i,dm.matrix);
-    dm.position.copy(pa).add(cn).multiplyScalar(.5);dv.copy(cn).sub(pa).normalize();dm.quaternion.setFromUnitVectors(Y,dv);dm.updateMatrix();rA.setMatrixAt(i,dm.matrix);
-    dm.position.copy(pb).add(cn).multiplyScalar(.5);dv.copy(cn).sub(pb).normalize();dm.quaternion.setFromUnitVectors(Y,dv);dm.updateMatrix();rB.setMatrixAt(i,dm.matrix);
-  }
-  scene.add(sA,sB,rA,rB);
-  var PN=1100,pos=new Float32Array(PN*3);
-  for(var k=0;k<PN;k++){var r=3.6+Math.random()*17,a=Math.random()*6.283;pos[k*3]=r*Math.cos(a);pos[k*3+1]=r*Math.sin(a);pos[k*3+2]=8-Math.random()*(LEN+14)}
-  var pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  scene.add(new THREE.Points(pg,pm));
-  var prots=[];
-  for(var q=0;q<16;q++){
-    var m=new THREE.Mesh(new THREE.IcosahedronGeometry(.9+Math.random()*.9,1),q%2?mC:mC2);
-    var aa=Math.random()*6.283,rr=6+Math.random()*7;
-    m.position.set(rr*Math.cos(aa),rr*Math.sin(aa),-q*(LEN/16)-Math.random()*6);
-    m.rotation.set(Math.random()*3,Math.random()*3,0);scene.add(m);prots.push(m);
-  }
-  scene.add(new THREE.AmbientLight(0xffffff,.62));
-  var key=new THREE.PointLight(0xffffff,1.25,48);cam.add(key);
-  var sun=new THREE.DirectionalLight(0xffffff,.5);sun.position.set(4,6,8);scene.add(sun);
-  var dirty=true;
-  function theme(){
-    var a=col('--gl-a'),b=col('--gl-b'),c=col('--gl-c'),bg=col('--gl-bg'),g=parseFloat(col('--gl-glow'))||.2;
-    mA.color.set(a);mA.emissive.set(a);mA.emissiveIntensity=g;
-    mB.color.set(b);mB.emissive.set(b);mB.emissiveIntensity=g;
-    mC.color.set(a);mC2.color.set(c);pm.color.set(a);
-    scene.fog=new THREE.Fog(bg,12,64);dirty=true;
-  }
-  theme();
-      function size(){var w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();cv.style.opacity=w<760?.45:1;dirty=true}
-  addEventListener('resize',size);size();
-  var p=0,mx=0,my=0,tmx=0,tmy=0;
-  addEventListener('pointermove',function(e){tmx=e.clientX/innerWidth-.5;tmy=e.clientY/innerHeight-.5});
-  function sm(t){return t*t*(3-2*t)}
-  var tgt=new THREE.Vector3(),fw=new THREE.Vector3(),rt=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0);
-  function place(p){
-    var z=16+((-LEN+10)-16)*p,dive=sm(Math.min(1,p/.1)),rc=9-7.5*dive,i=-z/STEP,th=i*TW+Math.PI/2+(1-dive)*.9;
-    cam.position.set(rc*Math.cos(th)+mx*.7,rc*Math.sin(th)-my*.7,z);
-    tgt.set(0,0,z-9);
-    var shift=(1-dive)*(innerWidth>900?4.6:0);
-    if(shift>0){fw.copy(tgt).sub(cam.position).normalize();rt.crossVectors(fw,UP).normalize();tgt.addScaledVector(rt,-shift)}
-    cam.lookAt(tgt);
-  }
-  function frame(){
-    requestAnimationFrame(frame);if(document.hidden)return;
-    var h=root.scrollHeight-innerHeight,tp=h>0?Math.min(1,Math.max(0,scrollY/h)):0;
-    var np=reduce?tp:p+(tp-p)*.07;
-    mx+=(tmx-mx)*.05;my+=(tmy-my)*.05;
-    if(!reduce)prots.forEach(function(m){m.rotation.x+=.0035;m.rotation.y+=.0045});
-    if(reduce&&!dirty&&Math.abs(np-p)<1e-5)return;
-    p=np;dirty=false;place(p);R.render(scene,cam);
-  }
-  frame();
-})();
 })();
 </script>
